@@ -8,80 +8,118 @@
 import SwiftUI
 import CoreData
 
-struct ContentView: View {
-   // @Environment(\.managedObjectContext) private var viewContext
-    //@FetchRequest(
-    //    sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-    //    animation: .default)
-    private var items: FetchedResults<Item>
-
-    var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+struct main_body: View{
+    @StateObject var mainRouter: MainRouter
+    var body: some View{
+        ZStack{
+            Rectangle()
+                .fill(Color.white)
+                .edgesIgnoringSafeArea(.all)
+            VStack{
+                Image("icon1")
+                Text("IMAGE CONVERTER & RESIZE")
+                    .font(.system(size: 17, weight: .bold))
+                    .padding(.bottom, 10)
+                Text("Select the type of image conversion you want")
+                    .foregroundColor(Color.gray)
+                    .frame(width: UIScreen.screenWidth * 0.6, height: 45, alignment: .center)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 15)
+                    
+                Button(action: {mainRouter.currentPage = .converter})
+                {
+                    HStack{
+                        Image("icon2")
+                            .padding(.leading, 10)
+                            .frame(height: UIScreen.screenHeight * 0.15, alignment: .leading)
+                        Text("CONVETER IMAGE")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(Color.black)
+                            .frame(width: UIScreen.screenWidth * 0.85, height: UIScreen.screenHeight * 0.15, alignment: .leading)
+                            
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                .frame(width: UIScreen.screenWidth * 0.85, height: UIScreen.screenHeight * 0.15, alignment: .leading)
+                .background(Color(red: 0.965, green: 0.965, blue: 0.965))
+                .cornerRadius(15)
+                .padding(.bottom, 15)
+                Button(action: {mainRouter.currentPage = .resize})
+                {
+                    HStack{
+                        Image("icon3")
+                            .padding(.leading, 10)
+                            .frame(height: UIScreen.screenHeight * 0.15, alignment: .leading)
+                        Text("RESIZE IMAGE")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(Color.black)
+                            .frame(width: UIScreen.screenWidth * 0.85, height: UIScreen.screenHeight * 0.15, alignment: .leading)
                     }
                 }
+                .frame(width: UIScreen.screenWidth * 0.85, height: UIScreen.screenHeight * 0.15, alignment: .leading)
+                .background(Color(red: 0.965, green: 0.965, blue: 0.965))
+                .cornerRadius(15)
+                .padding(.bottom, 15)
+                Button(action: {mainRouter.currentPage = .studio})
+                {
+                    HStack{
+                        Image("icon4")
+                            .padding(.leading, 10)
+                            .frame(height: UIScreen.screenHeight * 0.15, alignment: .leading)
+                        Text("STUDIO")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(Color.black)
+                            .frame(width: UIScreen.screenWidth * 0.85, height: UIScreen.screenHeight * 0.15, alignment: .leading)
+                    }
+                }
+                .frame(width: UIScreen.screenWidth * 0.85, height: UIScreen.screenHeight * 0.15, alignment: .leading)
+                .background(Color(red: 0.965, green: 0.965, blue: 0.965))
+                .cornerRadius(15)
+                Spacer()
+                Button(action: {mainRouter.currentPage = .settings})
+                {
+                    Image("settings")
+                }
+                .frame(width: UIScreen.screenWidth * 0.25, height: UIScreen.screenHeight * 0.08, alignment: .center)
+                .background(Color(red: 0.965, green: 0.965, blue: 0.965))
+                .cornerRadius(15)
+                .padding(.bottom, 15)
             }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
+struct Main_View: View {
+    
+    @StateObject var mainRouter = MainRouter()
+    let persistenceController = PersistenceController.shared
+    @State var pickerResult: [UIImage] = []
+    
+    var body: some View {
+        switch mainRouter.currentPage{
+        case .main:
+            main_body(mainRouter: mainRouter)
+        case .converter:
+            Menu(mainRouter: mainRouter, pickerResult: $pickerResult)
+        case .resize:
+            resize_main(mainRouter: mainRouter).environment(\.managedObjectContext, persistenceController.container.viewContext)
+        case .studio:
+            studio(mainRouter: mainRouter).environment(\.managedObjectContext, persistenceController.container.viewContext)
+        case .photos_converter:
+            galery_main(mainRouter: mainRouter, pickerResult: $pickerResult)
+        case .url:
+            url_body(mainRouter: mainRouter)
+        case .another_app:
+            Anotherapp_body(mainRouter: mainRouter)
+        case .settings:
+            settings_view(mainRouter: mainRouter)
+        }
+    }
+}
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        Main_View()
     }
 }
